@@ -28,21 +28,34 @@ public class BertModelConnection
         String path = @"C:\Users\Stas\Desktop\Bert\401_kosmynin\Bert\Bert.App\bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
         if (!File.Exists(path))
         {
-            
-            using (var httpClient = new HttpClient())
+            for (int attempt = 0; attempt < 3; attempt++)
             {
-                var stream = await httpClient.GetStreamAsync(url);
-
-                using (var fileStream = new FileStream(path, FileMode.CreateNew))
+                try
                 {
-                    await stream.CopyToAsync(fileStream);
+                    await DownloadModelAsync(url);
+                    return; 
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
-       
-            session = new InferenceSession(path);
-            
         }
-        
+        session = new InferenceSession(path);
+    }
+
+    public async Task DownloadModelAsync(string url)
+    {
+        String path = @"C:\Users\Stas\Desktop\Bert\401_kosmynin\Bert\Bert.App\bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
+        using (var httpClient = new HttpClient())
+        {
+            var stream = await httpClient.GetStreamAsync(url);
+
+            using (var fileStream = new FileStream(path, FileMode.CreateNew))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+        }
     }
 
     public async Task<String> ExecuteAsync(string prompt, CancellationToken token)

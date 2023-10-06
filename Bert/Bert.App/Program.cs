@@ -14,7 +14,7 @@ class Program
         string filePath = args[0];
         string text = await File.ReadAllTextAsync(filePath, token);
         
-        var answerText = bertModelConnection.ExecuteAsync(text, token);
+        var answerText = await bertModelConnection.ExecuteAsync(text, token);
         Console.WriteLine(answerText);
         while (!token.IsCancellationRequested)
         {
@@ -22,12 +22,13 @@ class Program
 
             if (string.IsNullOrWhiteSpace(prompt))
             {
+                cts.Cancel();
                 break;
             }
 
             try
             {
-                var answer = bertModelConnection.ExecuteAsync(prompt, token);
+                var answer = await bertModelConnection.ExecuteAsync(prompt, token);
                 Console.WriteLine(answer);
             }
             catch (Exception e)
