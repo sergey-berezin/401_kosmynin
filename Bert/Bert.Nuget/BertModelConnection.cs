@@ -64,12 +64,11 @@ public class BertModelConnection
         }
     }
 
-    public Task<string> ExecuteAsync(string prompt, CancellationToken token)
+    public Task<string> ExecuteAsync(string question, string text, CancellationToken token)
     {
         return Task.Factory.StartNew(() =>
         {
-            if (token.IsCancellationRequested)
-                token.ThrowIfCancellationRequested();
+            var prompt = $"{{\"question\": \"{question}\", \"context\": \"{text}\"}}";            
 
             // Create Tokenizer and tokenize the sentence.
             var tokenizer = new BertUncasedLargeTokenizer();
@@ -105,6 +104,8 @@ public class BertModelConnection
             };
 
             // Create an InferenceSession from the Model Path.
+            if (token.IsCancellationRequested)
+                token.ThrowIfCancellationRequested();
             IDisposableReadOnlyCollection<DisposableNamedOnnxValue>? output;
             sessionSemaphore.WaitOne();
             try

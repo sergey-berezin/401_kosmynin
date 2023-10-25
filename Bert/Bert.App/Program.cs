@@ -14,21 +14,19 @@ class Program
         string filePath = args[0];
         string text = await File.ReadAllTextAsync(filePath, token);
         
-        var answerText = await bertModelConnection.ExecuteAsync(text, token);
-        Console.WriteLine(answerText);
         var taskList = new List<Task>();
         while (!token.IsCancellationRequested)
         {
-            var prompt = Console.ReadLine();
+            var question = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(prompt))
+            if (string.IsNullOrWhiteSpace(question))
             {
                 cts.Cancel();
                 token.ThrowIfCancellationRequested();
             }
             try
             {
-                var answer =  bertModelConnection.ExecuteAsync(prompt, token).ContinueWith(answer =>
+                var answer =  bertModelConnection.ExecuteAsync(question, text, token).ContinueWith(answer =>
                 {
                     Console.WriteLine(answer.Result);
                     taskList.Add(answer);
