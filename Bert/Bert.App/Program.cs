@@ -16,6 +16,7 @@ class Program
         
         var answerText = await bertModelConnection.ExecuteAsync(text, token);
         Console.WriteLine(answerText);
+        var taskList = new List<Task>();
         while (!token.IsCancellationRequested)
         {
             var prompt = Console.ReadLine();
@@ -23,18 +24,20 @@ class Program
             if (string.IsNullOrWhiteSpace(prompt))
             {
                 cts.Cancel();
-                break;
+                token.ThrowIfCancellationRequested();
             }
-
             try
             {
-                var answer = await bertModelConnection.ExecuteAsync(prompt, token);
-                Console.WriteLine(answer);
+                var answer =  bertModelConnection.ExecuteAsync(prompt, token).ContinueWith(answer =>
+                {
+                    Console.WriteLine(answer.Result);
+                    taskList.Add(answer);
+                });
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
-        }
+        }await Task.WhenAll(taskList);
     }
 }
