@@ -19,13 +19,14 @@ public class BertModelConnection
         return _bertModelConnection;
     }
 
-    private static InferenceSession session;
-
     private static Semaphore sessionSemaphore = new Semaphore(1, 1);
+
+    private string ModelPath { get; set; }
 
     public async Task CreateOrDownloadAsync(string url)
     {
-        String path = @"C:\Users\Stas\Desktop\Bert\401_kosmynin\Bert\Bert.App\bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
+        var tmpPath = Path.GetTempPath();
+        var path = Path.Combine(tmpPath, "bert-large-uncased-whole-word-masking-finetuned-squad.onnx");
         if (!File.Exists(path))
         {
             var maxAttempts = 3;
@@ -42,18 +43,18 @@ public class BertModelConnection
                     if (attempt == maxAttempts)
                     {
                         Console.WriteLine(ex);
-                        throw;
+                        throw;  
                     }
                 }
             }
         }
-        session = new InferenceSession(path);
+        ModelPath = path;
     }
 
     public async Task DownloadModelAsync(string url)
     {
-        String path = @"C:\Users\Stas\Desktop\Bert\401_kosmynin\Bert\Bert.App\bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
-        using (var httpClient = new HttpClient())
+        var tmpPath = Path.GetTempPath();
+        var path = Path.Combine(tmpPath, "bert-large-uncased-whole-word-masking-finetuned-squad.onnx");        using (var httpClient = new HttpClient())
         {
             var stream = await httpClient.GetStreamAsync(url);
 
@@ -103,9 +104,11 @@ public class BertModelConnection
                 NamedOnnxValue.CreateFromTensor("segment_ids", token_type_ids)
             };
 
+            var session = new InferenceSession(ModelPath);
+
             // Create an InferenceSession from the Model Path.
-            if (token.IsCancellationRequested)
-                token.ThrowIfCancellationRequested();
+          
+            token.ThrowIfCancellationRequested();
             IDisposableReadOnlyCollection<DisposableNamedOnnxValue>? output;
             sessionSemaphore.WaitOne();
             try
@@ -115,6 +118,7 @@ public class BertModelConnection
             catch (Exception ex)
             {
                 sessionSemaphore.Release();
+                Console.WriteLine(ex.Message, ex);
                 throw;
             }
             sessionSemaphore.Release();
@@ -138,6 +142,7 @@ public class BertModelConnection
                 .ToList();
 
             // Print the result.
+            token.ThrowIfCancellationRequested();
             return String.Join(" ", predictedTokens);
         }, token);
     }
