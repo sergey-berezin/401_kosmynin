@@ -11,7 +11,9 @@ class Program
         var cts = new CancellationTokenSource();
         var token = cts.Token;
         
-        string filePath = args[0];
+        ////string filePath = args[0];
+
+        string filePath = @"C:\Users\Stas\Desktop\BertText.txt";
         string text = await File.ReadAllTextAsync(filePath, token);
         
         var taskList = new List<Task>();
