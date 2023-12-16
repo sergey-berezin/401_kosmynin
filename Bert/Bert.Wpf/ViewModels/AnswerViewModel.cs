@@ -8,13 +8,13 @@ using System.IO;
 using Microsoft.Win32;
 using System.Windows;
 using System;
+using Bert.Storage;
 using Bert.Wpf.Commands;
 
 namespace Bert.Wpf.ViewModels;
 
 public class AnswerViewModel : ViewModelBase
 {
-
     private ObservableCollection<string> _chatMessages = new ObservableCollection<string>();
 
     public ObservableCollection<string> ChatMessages
@@ -72,13 +72,16 @@ public class AnswerViewModel : ViewModelBase
 
     private BertModelConnection _bertModelConnection;
 
+    private JsonStorage _storage;
+
     public CancellationTokenSource cts { get; set; }
 
-    public AnswerViewModel(BertModelConnection bertModelConnection)
+    public AnswerViewModel(BertModelConnection bertModelConnection, JsonStorage storage)
     {
         AnswerCommand = new AsyncRelayCommand(Execute);
         CancelCommand = new RelayCommand(Cancel);
         _bertModelConnection = bertModelConnection;
+        _storage = storage;
     }
 
     public void Cancel(object parameter)
@@ -101,11 +104,21 @@ public class AnswerViewModel : ViewModelBase
             }
             ChatMessages.Add(Text);
             IsTextDownloaded = true;
+            return;
         }
-        else if (!IsTextDownloaded)
+        
+        var answerFromHistory = await _storage.AnswerAlreadyAskedQuestion(Question);
+        if (answerFromHistory != null)
+        {
+            ChatMessages.Add(Question);
+            ChatMessages.Add(answerFromHistory);
+            StatusMessage = "Successfully answered.";
+            return;
+        }
+        
+        if (!IsTextDownloaded)
         {
             ChatMessages.Add("Please choose text");
-            return;
         }
         else
         {
@@ -116,11 +129,10 @@ public class AnswerViewModel : ViewModelBase
             try
             {
                 ChatMessages.Add(Question);
-
                 var answer = await _bertModelConnection.ExecuteAsync(Question, Text, token);
 
                 ChatMessages.Add(answer);
-
+                await _storage.AddQuestionToHistory(Question, answer);
                 StatusMessage = "Successfully answered.";
             }
             catch(Exception ex) 

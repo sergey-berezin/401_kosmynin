@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Bert.Nuget;
+using Bert.Storage;
 using Bert.Wpf.ViewModels;
 using Microsoft.Win32;
 
@@ -34,8 +35,9 @@ namespace Bert.Wpf
             InitializeComponent();
 
             var bertModelConnection = BertModelConnection.GetBertModelConnection();
+            var storage = new JsonStorage();
 
-            var viewModel = new AnswerViewModel(bertModelConnection);
+            var viewModel = new AnswerViewModel(bertModelConnection, storage);
             DataContext = viewModel;
         }
 
