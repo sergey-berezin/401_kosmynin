@@ -107,7 +107,7 @@ public class AnswerViewModel : ViewModelBase
             return;
         }
         
-        var answerFromHistory = await _storage.AnswerAlreadyAskedQuestion(Question);
+        var answerFromHistory = await _storage.AnswerAlreadyAskedQuestion(Question, Text);
         if (answerFromHistory != null)
         {
             ChatMessages.Add(Question);

@@ -26,7 +26,7 @@ public class JsonStorage
         await File.WriteAllTextAsync(path, convertedJson);
     }
 
-    public async Task<string?> AnswerAlreadyAskedQuestion(string question)
+    public async Task<string?> AnswerAlreadyAskedQuestion(string question, string text)
     {
         var tmpPath = Path.GetTempPath();
         var path = Path.Combine(tmpPath, "storage.json");
@@ -39,7 +39,7 @@ public class JsonStorage
         if (history != null)
             foreach (var historyObject in history)
             {
-                if (historyObject.Question == question)
+                if (historyObject.Question == question && historyObject.Text == text)
                 {
                     return historyObject.Answer + " " + "This question was already answered earlier";
                 }
