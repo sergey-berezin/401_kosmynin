@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Bert.Nuget\Bert.Nuget.csproj" />
+    <ProjectReference Include="..\Bert.Storage\Bert.Storage.csproj" />
   </ItemGroup>
 
 </Project>
